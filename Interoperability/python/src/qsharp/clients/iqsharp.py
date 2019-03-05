@@ -23,7 +23,7 @@ from collections import defaultdict
 from typing import List, Dict, Callable, Any
 from pathlib import Path
 from qsharp.utils import log_messages
-from qsharp.serialization import map_tuples, unmap_tuples
+from qsharp.serialization import preserialize, unmap_tuples
 
 ## LOGGING ##
 
@@ -94,10 +94,10 @@ class IQSharpClient(object):
         return self.execute("%package", raise_on_stderr=False1)
 
     def simulate(self, op, **params) -> Any:
-        return self.execute(f'%simulate {op._name} {json.dumps(map_tuples(params))}')
+        return self.execute(f'%simulate {op._name} {json.dumps(preserialize(params))}')
 
     def estimate(self, op, **params) -> Dict[str, int]:
-        raw_counts = self.execute(f'%estimate {op._name} {json.dumps(map_tuples(params))}')
+        raw_counts = self.execute(f'%estimate {op._name} {json.dumps(preserialize(params))}')
         # Convert counts to ints, since they get turned to floats by JSON serialization.
         return {
             operation_name: int(count)

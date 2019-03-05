@@ -7,30 +7,41 @@
 # Licensed under the MIT License.
 ##
 
+import numpy as np
+
 # Tuples are json encoded differently in C#, this makes sure they are in the right format.
-def map_tuples(obj):
+def preserialize(obj):
     """
-    Given a Python object to be serialized, converts any tuples to dictionaries
-    of a form expected by the Q# backend.
+    Given a Python object to be serialized, converts that object to a form ready
+    to be serialized. For instance, any tuples to are converted to dictionaries
+    of a form expected by the Q# backend, and any NumPy arrays are transformed
+    to ordinary Python lists.
     """
+    if isinstance(obj, np.ndarray):
+        result = [
+            preserialize(element)
+            for element in obj
+        ]
+        return result
+
     if isinstance(obj, tuple):
         result = {
             '@type': 'tuple'
         }
         for i in range(len(obj)):
-            result[f"item{i+1}"] = map_tuples(obj[i])
+            result[f"item{i+1}"] = preserialize(obj[i])
         return result
 
     elif isinstance(obj, list):
         result = []
         for i in obj:
-            result.append(map_tuples(i))
+            result.append(preserialize(i))
         return result
 
     elif isinstance(obj, dict):
         result = {}
         for i in obj:
-            result[i] = map_tuples(obj[i])
+            result[i] = preserialize(obj[i])
         return result
 
     else:

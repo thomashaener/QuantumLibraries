@@ -12,12 +12,13 @@
 
 import unittest
 import json
-from qsharp.serialization import map_tuples, unmap_tuples
+from qsharp.serialization import preserialize, unmap_tuples
+import numpy as np
 
 class TestSerialization(unittest.TestCase):
     def test_map_shallow_tuple(self):
         self.assertEqual(
-            map_tuples((42, 'foo')),
+            preserialize((42, 'foo')),
             {'@type': 'tuple', 'item1': 42, 'item2': 'foo'}
         )
 
@@ -34,25 +35,25 @@ class TestSerialization(unittest.TestCase):
             }
         }
         self.assertEqual(
-            map_tuples(actual), expected
+            preserialize(actual), expected
         )
 
     def test_roundtrip_shallow_tuple(self):
         actual = ('a', 3.14, False)
         self.assertEqual(
-            unmap_tuples(map_tuples(actual)), actual
+            unmap_tuples(preserialize(actual)), actual
         )
 
     def test_roundtrip_dict(self):
         actual = {'a': 'b', 'c': ('d', 'e')}
         self.assertEqual(
-            unmap_tuples(map_tuples(actual)), actual
+            unmap_tuples(preserialize(actual)), actual
         )
 
     def test_roundtrip_deep_tuple(self):
         actual = ('a', ('b', 'c'))
         self.assertEqual(
-            unmap_tuples(map_tuples(actual)), actual
+            unmap_tuples(preserialize(actual)), actual
         )
 
     def test_roundtrip_very_deep_tuple(self):
@@ -67,7 +68,19 @@ class TestSerialization(unittest.TestCase):
             }
         }
         self.assertEqual(
-            unmap_tuples(map_tuples(actual)), actual
+            unmap_tuples(preserialize(actual)), actual
+        )
+
+    def test_serialize_1d_array(self):
+        actual = np.array([0, 12, -42])
+        self.assertEqual(
+            unmap_tuples(preserialize(actual)), [0, 12, -42]
+        )
+
+    def test_serialize_2d_array(self):
+        actual = np.array([[0], [12], [-42]])
+        self.assertEqual(
+            unmap_tuples(preserialize(actual)), [[0], [12], [-42]]
         )
 
 if __name__ == "__main__":
